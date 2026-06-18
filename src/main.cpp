@@ -7,6 +7,10 @@
 #include "touch_input.h"
 #include "encryption.h"
 #include "ble_init.h"
+#if defined(TARGET_ESP32)
+#include "soc/rtc_cntl_reg.h"
+#include "soc/soc.h"
+#endif
 
 #if defined(TARGET_ESP32) && defined(OPENDISPLAY_LOG_UART)
 #include <HardwareSerial.h>
@@ -20,6 +24,11 @@ static HardwareSerial LogSerialPort(1);
 #endif
 
 void setup() {
+    #if defined(TARGET_ESP32)
+    // TEMP experiment: disable brownout detector to ride through transient
+    // dips from the ACeP panel power-up inrush during BLE-active uploads.
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+    #endif
     #if defined(TARGET_ESP32) && defined(OPENDISPLAY_LOG_UART)
     LogSerialPort.begin(115200, SERIAL_8N1, OPENDISPLAY_LOG_UART_RX, OPENDISPLAY_LOG_UART_TX);
     delay(100);
